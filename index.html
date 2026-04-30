@@ -1609,15 +1609,15 @@
                 </p>
             </div>
 
-            <form class="rsvp-form mt-5 fade-in" onsubmit="submitRSVP(event)">
+            <form class="rsvp-form mt-5 fade-in" id="rsvpForm" onsubmit="submitRSVP(event)">
                 <div class="mb-3">
                     <label class="form-label">Nama Lengkap</label>
-                    <input type="text" class="form-control" placeholder="Masukkan nama Anda" required>
+                    <input type="text" class="form-control" id="nama" placeholder="Masukkan nama Anda" required>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Jumlah Tamu</label>
-                    <select class="form-select" required>
+                    <select class="form-select" id="jumlahTamu" required>
                         <option value="">Pilih jumlah tamu</option>
                         <option value="1">1 Orang</option>
                         <option value="2">2 Orang</option>
@@ -1630,20 +1630,20 @@
                     <label class="form-label">Konfirmasi Kehadiran</label>
                     <div class="attendance-options">
                         <div class="attendance-option">
-                            <input type="radio" name="attendance" id="attend-yes" value="yes" required>
-                            <label for="attend-yes">
+                            <input type="radio" name="kehadiran" id="hadir" value="Hadir" required>
+                            <label for="hadir">
                                 <i class="bi bi-check-circle me-1"></i> Hadir
                             </label>
                         </div>
                         <div class="attendance-option">
-                            <input type="radio" name="attendance" id="attend-maybe" value="maybe">
-                            <label for="attend-maybe">
+                            <input type="radio" name="kehadiran" id="mungkin" value="Mungkin">
+                            <label for="mungkin">
                                 <i class="bi bi-question-circle me-1"></i> Mungkin
                             </label>
                         </div>
                         <div class="attendance-option">
-                            <input type="radio" name="attendance" id="attend-no" value="no">
-                            <label for="attend-no">
+                            <input type="radio" name="kehadiran" id="tidak" value="Tidak Hadir">
+                            <label for="tidak">
                                 <i class="bi bi-x-circle me-1"></i> Tidak Hadir
                             </label>
                         </div>
@@ -1652,10 +1652,10 @@
 
                 <div class="mb-3">
                     <label class="form-label">Ucapan & Doa</label>
-                    <textarea class="form-control" rows="4" placeholder="Tuliskan ucapan dan doa untuk kedua mempelai..."></textarea>
+                    <textarea class="form-control" id="ucapan" rows="4" placeholder="Tuliskan ucapan dan doa untuk kedua mempelai..." required></textarea>
                 </div>
 
-                <button type="submit" class="btn-submit">
+                <button type="submit" class="btn-submit" id="btnSubmit">
                     <i class="bi bi-send me-2"></i>Kirim Ucapan
                 </button>
             </form>
@@ -1667,24 +1667,11 @@
                 </h5>
 
                 <div id="wishes-container">
-                    <div class="mb-3 p-3" style="background: rgba(255,248,238,0.06); border-radius: 10px; border: 1px solid rgba(198,169,78,0.15);">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <strong style="color: var(--gold);">Ahmad Fauzi</strong>
-                            <small style="color: rgba(245,230,200,0.4);">Baru saja</small>
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-warning" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
-                        <p style="color: var(--cream-dark); font-size: 0.9rem; margin: 0;">
-                            Barakallahu lakuma wa baraka 'alaikuma. Semoga menjadi keluarga yang sakinah, mawaddah, warahmah. 🤲
-                        </p>
-                    </div>
-
-                    <div class="mb-3 p-3" style="background: rgba(255,248,238,0.06); border-radius: 10px; border: 1px solid rgba(198,169,78,0.15);">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <strong style="color: var(--gold);">Dewi Lestari</strong>
-                            <small style="color: rgba(245,230,200,0.4);">5 menit lalu</small>
-                        </div>
-                        <p style="color: var(--cream-dark); font-size: 0.9rem; margin: 0;">
-                            Selamat menempuh hidup baru! Semoga selalu diberikan kebahagiaan dan keberkahan. Aamiin. 💐
-                        </p>
+                        <p class="mt-2" style="color: var(--cream-dark);">Memuat ucapan...</p>
                     </div>
                 </div>
             </div>
@@ -2051,6 +2038,119 @@
             musicBtn.style.display = 'none';
         }
     });
+
+    // GANTI DENGAN URL WEB APP GOOGLE SCRIPTS ANDA
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyGx0Yq3rJFfi_NVQNvCuf9-4XU6oOht7H2WvlZAgj433nKG2YrM6hsVem9PbADpfM5/exec';
+
+    // Submit RSVP
+    async function submitRSVP(e) {
+        e.preventDefault();
+        
+        const btnSubmit = document.getElementById('btnSubmit');
+        const originalText = btnSubmit.innerHTML;
+        
+        // Disable button & show loading
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Mengirim...';
+        
+        const formData = {
+            action: 'submit',
+            nama: document.getElementById('nama').value,
+            jumlahTamu: document.getElementById('jumlahTamu').value,
+            kehadiran: document.querySelector('input[name="kehadiran"]:checked').value,
+            ucapan: document.getElementById('ucapan').value
+        };
+        
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                body: new URLSearchParams(formData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Reset form
+                document.getElementById('rsvpForm').reset();
+                
+                // Show success message
+                alert('Terima kasih atas ucapan dan doanya! 🙏');
+                
+                // Reload wishes
+                loadWishes();
+            } else {
+                alert('Terjadi kesalahan. Silakan coba lagi.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan. Silakan coba lagi.');
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = originalText;
+        }
+    }
+
+    // Load Wishes dari Google Spreadsheet
+    async function loadWishes() {
+        const container = document.getElementById('wishes-container');
+        
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL + '?action=get');
+            const result = await response.json();
+            
+            if (result.success && result.data.length > 0) {
+                container.innerHTML = result.data.map(wish => {
+                    const timeAgo = getTimeAgo(new Date(wish.timestamp));
+                    return `
+                        <div class="mb-3 p-3" style="background: rgba(255,248,238,0.06); border-radius: 10px; border: 1px solid rgba(198,169,78,0.15);">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong style="color: var(--gold);">${escapeHtml(wish.nama)}</strong>
+                                <small style="color: rgba(245,230,200,0.4);">${timeAgo}</small>
+                            </div>
+                            <p style="color: var(--cream-dark); font-size: 0.9rem; margin: 0;">${escapeHtml(wish.ucapan)}</p>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="bi bi-chat-square-text" style="font-size: 3rem; color: var(--gold); opacity: 0.3;"></i>
+                        <p class="mt-2" style="color: var(--cream-dark);">Belum ada ucapan. Jadilah yang pertama!</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading wishes:', error);
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 3rem; color: var(--gold); opacity: 0.3;"></i>
+                    <p class="mt-2" style="color: var(--cream-dark);">Gagal memuat ucapan</p>
+                </div>
+            `;
+        }
+    }
+
+    // Helper: Format waktu relatif (Baru saja, 5 menit lalu, dll)
+    function getTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        
+        if (seconds < 60) return 'Baru saja';
+        if (seconds < 3600) return `${Math.floor(seconds / 60)} menit lalu`;
+        if (seconds < 86400) return `${Math.floor(seconds / 3600)} jam lalu`;
+        if (seconds < 604800) return `${Math.floor(seconds / 86400)} hari lalu`;
+        
+        return date.toLocaleDateString('id-ID');
+    }
+
+    // Helper: Escape HTML untuk mencegah XSS
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Load wishes saat halaman dimuat
+    document.addEventListener('DOMContentLoaded', loadWishes);
     </script>
 
     
